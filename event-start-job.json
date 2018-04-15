@@ -1,0 +1,7 @@
+{
+    "files": [
+        "s3://noagenda-source/split/shows/9999/out000.mp3",
+        "s3://noagenda-source/split/shows/9999/out001.mp3",
+        "s3://noagenda-source/split/shows/9999/out002.mp3"
+    ]
+}

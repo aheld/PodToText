@@ -1,0 +1,116 @@
+
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: mp3 file splitter to kickoff transcribe job
+Resources:
+  StartTranscription:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: startTranscribeFromS3
+      CodeUri: ./dist
+      Runtime: nodejs8.10
+      Handler: index.handler
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+      - AWSLambdaExecute # Managed Policy
+      - Version: '2012-10-17' # Policy Document
+        Statement:
+          - Effect: Allow
+            Action:
+              - states:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectACL
+              - s3:GetObject
+              - s3:GetObjectACL
+            Resource: 'arn:aws:s3:::noagenda-source/*'
+      Events:
+        ShowUpload:
+          Type: S3
+          Properties:
+           Bucket: !Ref ShowBucket
+           Events: s3:ObjectCreated:*
+           Filter:
+             S3Key:
+               Rules:
+                 - Name: suffix
+                   Value: '.mp3'
+                 - Name: prefix
+                   Value: 'shows'
+  StartTranscriptionJobs:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: startTranscribe
+      CodeUri: ./dist
+      Runtime: nodejs8.10
+      Handler: index.startTranscribe
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17' # Policy Document
+        Statement:
+          - Effect: Allow
+            Action:
+              - transcribe:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectACL
+              - s3:GetObject
+              - s3:GetObjectACL
+            Resource: 'arn:aws:s3:::noagenda-source/*'
+  checkTranscribeJobs:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: checkTranscribeJobs
+      CodeUri: ./dist
+      Runtime: nodejs8.10
+      Handler: index.checkTranscribeJobs
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17' # Policy Document
+        Statement:
+          - Effect: Allow
+            Action:
+              - transcribe:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectACL
+              - s3:GetObject
+              - s3:GetObjectACL
+            Resource: 'arn:aws:s3:::noagenda-source/*'
+  getTranscript:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getTranscript
+      CodeUri: ./dist
+      Runtime: nodejs8.10
+      Handler: index.buildTranscript
+      MemorySize: 1024
+      Timeout: 300
+      Policies:
+      - AWSLambdaExecute
+      - Version: '2012-10-17' # Policy Document
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:PutObjectACL
+              - s3:GetObject
+              - s3:GetObjectACL
+            Resource: 'arn:aws:s3:::noagenda-source/*'
+
+  ShowBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: noagenda-source

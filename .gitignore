@@ -1,0 +1,7 @@
+s3
+dist-splitter
+packaged-template.yml
+.idea
+.rpt2_cache
+node_modules
+dist/ffmpeg
